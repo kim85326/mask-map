@@ -1,8 +1,17 @@
 <template>
 	<div id="app">
-		<div class="sidebar">
-			<button class="toggle-sidebar-button">
-				<span class="arrow arrow-right"></span>
+		<div
+			class="sidebar"
+			:class="{ 'hide': !isShowSidebar}"
+		>
+			<button
+				class="toggle-sidebar-button"
+				@click="isShowSidebar = !isShowSidebar"
+			>
+				<span
+					class="arrow"
+					:class="isShowSidebar? 'arrow-right': 'arrow-left'"
+				></span>
 			</button>
 			<div class="today">
 				<h2 class="today-week">星期二</h2>
@@ -58,6 +67,9 @@
 <script>
 export default {
 	name: "App",
+	data: () => ({
+		isShowSidebar: true
+	}),
 	components: {},
 };
 </script>
