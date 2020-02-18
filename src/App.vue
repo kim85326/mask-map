@@ -25,38 +25,79 @@
 			</div>
 			<div class="search">
 				<div class="search-input-group">
-					<label for="city">縣市</label>
-					<select id="city">
-						<option value="">台中市</option>
+					<label for="cityName">縣市</label>
+					<select
+						id="cityName"
+						v-model="select.cityName"
+						@change="select.areaName = ''"
+					>
+						<option
+							value=""
+							disabled
+						>請選擇</option>
+						<option
+							v-for="city in cities"
+							:key="city.CityName"
+							:value="city.CityName"
+						>
+							{{city.CityName}}
+						</option>
 					</select>
 				</div>
 				<div class="search-input-group">
-					<label for="">地區</label>
-					<select>
-						<option value="">豐原區</option>
+					<label for="areaName">地區</label>
+					<select
+						id="areaName"
+						v-model="select.areaName"
+					>
+						<option
+							value=""
+							disabled
+						>請選擇</option>
+						<option
+							v-for="area in cities.find((city) => city.CityName === select.cityName).AreaList"
+							:key="area.AreaName"
+							:value="area.AreaName"
+						>
+							{{area.AreaName}}
+						</option>
 					</select>
 				</div>
 			</div>
 			<div class="pharmacies">
+				<template v-if="filterPharmacies.length !== 0">
+					<template v-for="item in filterPharmacies">
+						<div
+							class="pharmacy"
+							:key="item.properties.id"
+						>
+							<div class="pharmacy-title">{{item.properties.name}}</div>
+							<div class="pharmacy-address">{{item.properties.address}}</div>
+							<div class="pharmacy-phone">{{item.properties.phone}}</div>
+							<div class="pharmacy-mask-group">
+								<div
+									class="pharmacy-mask"
+									:class="getMaskCountClass(item.properties.mask_adult)"
+								>
+									<div class="pharmacy-mask-title">成人口罩</div>
+									<div class="pharmacy-mask-count">{{item.properties.mask_adult}}</div>
+								</div>
+								<div
+									class="pharmacy-mask"
+									:class="getMaskCountClass(item.properties.mask_adult)"
+								>
+									<div class="pharmacy-mask-title">兒童口罩</div>
+									<div class="pharmacy-mask-count">{{item.properties.mask_child}}</div>
+								</div>
+							</div>
+						</div>
+					</template>
+				</template>
 				<div
-					class="pharmacy"
-					v-for="i in 10"
-					:key="i"
+					v-else
+					class="no-data"
 				>
-					<div class="pharmacy-title">富山藥局</div>
-					<div class="pharmacy-address">114台北市內湖區麗山街364巷2號</div>
-					<div class="pharmacy-phone">02 2799 6446</div>
-					<div class="pharmacy-time">營業中 9:00~21:00</div>
-					<div class="pharmacy-mask-group">
-						<div class="pharmacy-mask pharmacy-mask-more">
-							<div class="pharmacy-mask-title">成人口罩</div>
-							<div class="pharmacy-mask-count">100</div>
-						</div>
-						<div class="pharmacy-mask pharmacy-mask-less">
-							<div class="pharmacy-mask-title">兒童口罩</div>
-							<div class="pharmacy-mask-count">35</div>
-						</div>
-					</div>
+					沒有資料 或 請選擇地區
 				</div>
 			</div>
 		</div>
@@ -65,12 +106,45 @@
 </template>
 
 <script>
+import cities from "./assets/cities.json";
+
 export default {
 	name: "App",
 	data: () => ({
-		isShowSidebar: true
+		cities,
+		isShowSidebar: true,
+		pharmacies: [],
+		select: {
+			cityName: "臺北市",
+			areaName: "大安區",
+		},
 	}),
-	components: {},
+	async mounted() {
+		const response = await this.axios.get("https://raw.githubusercontent.com/kiang/pharmacies/master/json/points.json");
+		this.pharmacies = response.data.features;
+		console.log(this.pharmacies);
+	},
+	methods: {
+		getMaskCountClass(count) {
+			if (count >= 50) {
+				return "pharmacy-mask-more";
+			}
+
+			if (count <= 0) {
+				return "pharmacy-mask-none";
+			}
+
+			return "pharmacy-mask-less";
+		}
+	},
+	computed: {
+		filterPharmacies() {
+			const { cityName, areaName } = this.select;
+			return this.pharmacies.filter((pharmacy) => (
+				pharmacy.properties.county === cityName && pharmacy.properties.town === areaName
+			));
+		}
+	}
 };
 </script>
 
@@ -240,8 +314,7 @@ export default {
 }
 
 .pharmacy-address,
-.pharmacy-phone,
-.pharmacy-time {
+.pharmacy-phone {
 	margin-bottom: 8px;
 }
 
@@ -273,5 +346,12 @@ export default {
 
 .pharmacy-mask-none {
 	background-color: #a5a5a5;
+}
+
+.no-data {
+	margin-top: 100px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
 }
 </style>
