@@ -14,11 +14,13 @@
 				></span>
 			</button>
 			<div class="today">
-				<h2 class="today-week">星期二</h2>
+				<h2 class="today-week">{{today.getDay() | convertToChineseDay}}</h2>
 				<div class="today-info">
-					<div class="today-date">2020-02-06</div>
+					<div class="today-date">{{today | convertToDateString}}</div>
 					<div class="today-description">身分證末碼為
-						<span class="today-description-high-light">2,4,6,8,0</span>
+						<span class="today-description-high-light">
+							{{today.getDay() % 2 === 0 ? "2,4,6,8,0" : "1,3,5,7,9"}}
+						</span>
 						可購買
 					</div>
 				</div>
@@ -152,7 +154,8 @@ export default {
 		select: {
 			cityName: "臺北市",
 			areaName: "大安區",
-		}
+		},
+		today: new Date(),
 	}),
 	async mounted() {
 		this.openStreetMap = new OpenStreetMap("map", 25.033671, 121.564427);
@@ -201,6 +204,19 @@ export default {
 				pharmacy.properties.county === cityName && pharmacy.properties.town === areaName
 			));
 		}
+	},
+	filters: {
+		convertToChineseDay(day) {
+			const chineseDay = ["日", "一", "二", "三", "四", "五", "六"];
+			return `星期${chineseDay[day]}`;
+		},
+		convertToDateString(date) {
+			const pad = (n) => {
+				return n < 10 ? `0${n}` : n;
+			};
+			return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+		},
+
 	}
 };
 </script>
