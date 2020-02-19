@@ -1,18 +1,6 @@
 <template>
 	<div id="app">
-		<div
-			class="sidebar"
-			:class="{ 'hide': !isShowSidebar}"
-		>
-			<button
-				class="toggle-sidebar-button"
-				@click="isShowSidebar = !isShowSidebar"
-			>
-				<span
-					class="arrow"
-					:class="isShowSidebar? 'arrow-right': 'arrow-left'"
-				></span>
-			</button>
+		<div class="sidebar">
 			<div class="today">
 				<h2 class="today-week">{{today.getDay() | convertToChineseDay}}</h2>
 				<div class="today-info">
@@ -149,7 +137,6 @@ export default {
 	name: "App",
 	data: () => ({
 		cities,
-		isShowSidebar: true,
 		pharmacies: [],
 		select: {
 			cityName: "臺北市",
@@ -225,7 +212,8 @@ export default {
 @import "~leaflet/dist/leaflet.css";
 
 #map {
-	width: 100%;
+	margin-left: 400px;
+	width: calc(100% - 400px);
 	height: 100vh;
 }
 
@@ -242,57 +230,6 @@ export default {
 	box-shadow: 0px 3px 6px #00000029;
 	display: flex;
 	flex-direction: column;
-	transition: all 0.5s ease-in;
-}
-
-.sidebar.hide {
-	transform: translateX(-100%);
-}
-
-.toggle-sidebar-button {
-	position: absolute;
-	top: 124px;
-	right: -20px;
-	background-color: #73c0d8;
-	color: white;
-	z-index: 1000;
-	width: 20px;
-	height: 60px;
-	border: none;
-	box-shadow: 0px 3px 6px #00000029;
-	border-radius: 0px 5px 5px 0px;
-	cursor: pointer;
-	padding: 0;
-}
-
-.toggle-sidebar-button:focus,
-.toggle-sidebar-button:active {
-	outline: none;
-}
-
-.arrow {
-	display: inline-block;
-	width: 8px;
-	height: 8px;
-	border-color: white;
-}
-
-.arrow-left {
-	border-top: 2px solid;
-	border-left: 2px solid;
-	transform: rotate(135deg);
-	margin-right: 4px;
-}
-
-.arrow-right {
-	border-top: 2px solid;
-	border-right: 2px solid;
-	transform: rotate(-135deg);
-	margin-left: 4px;
-}
-
-.toggle-sidebar-button::before {
-	top: 0;
 }
 
 .today {
