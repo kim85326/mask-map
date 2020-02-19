@@ -312,6 +312,7 @@ export default {
 	color: #666666;
 	padding: 16px;
 	border-bottom: 2px solid #d9d9d9;
+	transition: all 0.3s;
 }
 
 .pharmacy:hover {
