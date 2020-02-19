@@ -29,7 +29,7 @@
 					<select
 						id="cityName"
 						v-model="select.cityName"
-						@change="select.areaName = ''"
+						@change="select.areaName = ''; updateMap()"
 					>
 						<option
 							value=""
@@ -49,6 +49,7 @@
 					<select
 						id="areaName"
 						v-model="select.areaName"
+						@change="updateMap"
 					>
 						<option
 							value=""
@@ -66,28 +67,29 @@
 			</div>
 			<div class="pharmacies">
 				<template v-if="filterPharmacies.length !== 0">
-					<template v-for="item in filterPharmacies">
+					<template v-for="pharmacy in filterPharmacies">
 						<div
 							class="pharmacy"
-							:key="item.properties.id"
+							:key="pharmacy.properties.id"
+							@click="focus(pharmacy)"
 						>
-							<div class="pharmacy-title">{{item.properties.name}}</div>
-							<div class="pharmacy-address">{{item.properties.address}}</div>
-							<div class="pharmacy-phone">{{item.properties.phone}}</div>
+							<div class="pharmacy-title">{{pharmacy.properties.name}}</div>
+							<div class="pharmacy-address">{{pharmacy.properties.address}}</div>
+							<div class="pharmacy-phone">{{pharmacy.properties.phone}}</div>
 							<div class="pharmacy-mask-group">
 								<div
 									class="pharmacy-mask"
-									:class="getMaskCountClass(item.properties.mask_adult)"
+									:class="getMaskCountClass(pharmacy.properties.mask_adult)"
 								>
 									<div class="pharmacy-mask-title">成人口罩</div>
-									<div class="pharmacy-mask-count">{{item.properties.mask_adult}}</div>
+									<div class="pharmacy-mask-count">{{pharmacy.properties.mask_adult}}</div>
 								</div>
 								<div
 									class="pharmacy-mask"
-									:class="getMaskCountClass(item.properties.mask_adult)"
+									:class="getMaskCountClass(pharmacy.properties.mask_child)"
 								>
 									<div class="pharmacy-mask-title">兒童口罩</div>
-									<div class="pharmacy-mask-count">{{item.properties.mask_child}}</div>
+									<div class="pharmacy-mask-count">{{pharmacy.properties.mask_child}}</div>
 								</div>
 							</div>
 						</div>
@@ -107,6 +109,39 @@
 
 <script>
 import cities from "./assets/cities.json";
+import OpenStreetMap, { markerIcons } from "./classes/openStreetMap";
+
+const getMaskCountClass = (count) => {
+	if (count >= 50) {
+		return "pharmacy-mask-more";
+	}
+
+	if (count <= 0) {
+		return "pharmacy-mask-none";
+	}
+
+	return "pharmacy-mask-less";
+};
+
+const createPopUp = (pharmacy) => (`
+<div class="pharmacy-title">${pharmacy.properties.name}</div>
+  <div class="pharmacy-address">${pharmacy.properties.address}</div>
+  <div class="pharmacy-phone">${pharmacy.properties.phone}</div>
+  <div class="pharmacy-mask-group">
+    <div
+      class="pharmacy-mask ${getMaskCountClass(pharmacy.properties.mask_adult)}"
+    >
+      <div class="pharmacy-mask-title">成人口罩</div>
+      <div class="pharmacy-mask-count">${pharmacy.properties.mask_adult}</div>
+    </div>
+    <div
+      class="pharmacy-mask ${getMaskCountClass(pharmacy.properties.mask_child)}"
+    >
+      <div class="pharmacy-mask-title">兒童口罩</div>
+      <div class="pharmacy-mask-count">${pharmacy.properties.mask_child}</div>
+    </div>
+  </div>
+`);
 
 export default {
 	name: "App",
@@ -117,24 +152,46 @@ export default {
 		select: {
 			cityName: "臺北市",
 			areaName: "大安區",
-		},
+		}
 	}),
 	async mounted() {
+		this.openStreetMap = new OpenStreetMap("map", 25.033671, 121.564427);
+
 		const response = await this.axios.get("https://raw.githubusercontent.com/kiang/pharmacies/master/json/points.json");
 		this.pharmacies = response.data.features;
-		console.log(this.pharmacies);
+
+		this.updateMap();
 	},
 	methods: {
-		getMaskCountClass(count) {
-			if (count >= 50) {
-				return "pharmacy-mask-more";
-			}
+		getMaskCountClass,
+		setMarkers() {
+			this.filterPharmacies.forEach((pharmacy) => {
+				const [lng, lat] = pharmacy.geometry.coordinates;
+				this.openStreetMap.addMarker(lat, lng, markerIcons.green, createPopUp(pharmacy));
+			});
+		},
+		resetMarkers() {
+			this.openStreetMap.removeAllMarkers();
+		},
+		moveTo(pharmacy) {
+			const [lng, lat] = pharmacy.geometry.coordinates;
+			this.openStreetMap.moveTo(lat, lng);
+		},
+		openPopUp(pharmacy) {
+			const [lng, lat] = pharmacy.geometry.coordinates;
+			this.openStreetMap.addMarker(lat, lng, markerIcons.green, createPopUp(pharmacy), true);
+		},
+		updateMap() {
+			this.resetMarkers();
+			this.setMarkers();
 
-			if (count <= 0) {
-				return "pharmacy-mask-none";
+			if (this.filterPharmacies.length !== 0) {
+				this.focus(this.filterPharmacies[0]);
 			}
-
-			return "pharmacy-mask-less";
+		},
+		focus(pharmacy) {
+			this.moveTo(pharmacy);
+			this.openPopUp(pharmacy);
 		}
 	},
 	computed: {
@@ -149,6 +206,8 @@ export default {
 </script>
 
 <style>
+@import "~leaflet/dist/leaflet.css";
+
 #map {
 	width: 100%;
 	height: 100vh;
@@ -334,6 +393,10 @@ export default {
 	color: white;
 	font-weight: bold;
 	font-size: 16px;
+}
+
+.pharmacy-mask:not(:last-child) {
+	margin-right: 16px;
 }
 
 .pharmacy-mask-more {
