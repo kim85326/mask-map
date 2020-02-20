@@ -8,9 +8,9 @@ const markerIconsConfig = {
 };
 
 export const markerIcons = {
-  green: new L.Icon({
+  blue: new L.Icon({
     iconUrl:
-      "https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png",
+      "https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png",
     ...markerIconsConfig
   }),
   grey: new L.Icon({
@@ -38,7 +38,7 @@ export default class OpenStreetMap {
     );
   }
 
-  addMarker(lat, lng, icon = markerIcons.green, popUpHtml = "", isOpenPopUp = false) {
+  addMarker(lat, lng, icon = markerIcons.blue, popUpHtml = "", isOpenPopUp = false) {
     const layer = L.marker([lat, lng], { icon })
       .addTo(this.map)
       .bindPopup(popUpHtml);

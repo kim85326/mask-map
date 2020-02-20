@@ -156,9 +156,14 @@ export default {
 		getMaskCountClass,
 		setMarkers() {
 			this.filterPharmacies.forEach((pharmacy) => {
-				const [lng, lat] = pharmacy.geometry.coordinates;
-				this.openStreetMap.addMarker(lat, lng, markerIcons.green, createPopUp(pharmacy));
+				this.addMarker(pharmacy);
 			});
+		},
+		addMarker(pharmacy, isOpenPopUp = false) {
+			const [lng, lat] = pharmacy.geometry.coordinates;
+			const { mask_adult: maskAdultCount, mask_child: maskChildCount } = pharmacy.properties;
+			const icon = maskAdultCount || maskChildCount ? markerIcons.blue : markerIcons.grey;
+			this.openStreetMap.addMarker(lat, lng, icon, createPopUp(pharmacy), isOpenPopUp);
 		},
 		resetMarkers() {
 			this.openStreetMap.removeAllMarkers();
@@ -168,8 +173,7 @@ export default {
 			this.openStreetMap.moveTo(lat, lng);
 		},
 		openPopUp(pharmacy) {
-			const [lng, lat] = pharmacy.geometry.coordinates;
-			this.openStreetMap.addMarker(lat, lng, markerIcons.green, createPopUp(pharmacy), true);
+			this.addMarker(pharmacy, true);
 		},
 		updateMap() {
 			this.resetMarkers();
