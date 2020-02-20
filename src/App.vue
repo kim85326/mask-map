@@ -1,5 +1,6 @@
 <template>
 	<div id="app">
+		<Loading :active.sync="isLoading"></Loading>
 		<div class="sidebar">
 			<div class="today">
 				<h2 class="today-week">{{today.getDay() | convertToChineseDay}}</h2>
@@ -143,14 +144,19 @@ export default {
 			areaName: "大安區",
 		},
 		today: new Date(),
+		isLoading: false
 	}),
 	async mounted() {
+		this.isLoading = true;
+
 		this.openStreetMap = new OpenStreetMap("map", 25.033671, 121.564427);
 
 		const response = await this.axios.get("https://raw.githubusercontent.com/kiang/pharmacies/master/json/points.json");
 		this.pharmacies = response.data.features;
 
 		this.updateMap();
+
+		this.isLoading = false;
 	},
 	methods: {
 		getMaskCountClass,
